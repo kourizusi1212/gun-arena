@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GUN ARENA</title>
+<style>
+*{box-sizing:border-box;margin:0}
+body{overflow:hidden;background:#0b1020;color:#fff;font:700 14px system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;user-select:none}
+canvas{position:fixed;inset:0}
+.scr{position:fixed;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:linear-gradient(135deg,#0b1020,#1b2a55,#3a1b55,#0b1020);background-size:300% 300%;animation:bg 12s ease infinite}
+@keyframes bg{50%{background-position:100% 100%}}
+@keyframes fl{50%{transform:translateY(-8px) scale(1.04)}}
+@keyframes fi{from{transform:translateX(30px);opacity:0}}
+h1{font-size:clamp(40px,9vw,84px);letter-spacing:8px;background:linear-gradient(90deg,#4fc3f7,#b388ff,#ffd54f,#4fc3f7);background-size:200%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:bg 4s linear infinite,fl 3s ease-in-out infinite}
+input,button{font:inherit;padding:12px 18px;border-radius:12px;border:2px solid #4fc3f755;background:#0007;color:#fff;outline:none;text-align:center}
+input:focus{border-color:#4fc3f7;box-shadow:0 0 14px #4fc3f7aa}
+button{cursor:pointer;border:0;background:linear-gradient(#4fc3f7,#2979ff);transition:.15s}
+button:hover{transform:translateY(-2px) scale(1.05);filter:brightness(1.2)}
+.row{display:flex;gap:8px}#code{width:120px;text-transform:uppercase;letter-spacing:6px}
+#err{color:#ff8a80;height:18px}
+#rc{font-size:76px;letter-spacing:14px;font-weight:900;cursor:pointer;text-shadow:0 0 30px #4fc3f7;animation:fl 2s ease-in-out infinite}
+#pl{list-style:none;min-width:240px}#pl li{background:#0007;padding:8px 14px;margin:4px 0;border-radius:8px;animation:fi .3s}
+#pl i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:10px}
+#hud{display:none}#hud>*{position:fixed;pointer-events:none;z-index:3}
+#cross{left:50%;top:50%;width:var(--s,22px);height:var(--s,22px);transform:translate(-50%,-50%);border:2px solid #fffd;border-radius:50%;box-shadow:0 0 3px #000;transition:width .06s,height .06s}
+#cross::after{content:'';position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;background:#fff;border-radius:50%}
+#hm{left:50%;top:50%;font-size:36px;opacity:0;text-shadow:0 0 6px #000}
+#bars{left:20px;bottom:20px;width:270px}
+.bar{position:relative;height:18px;margin-top:6px;background:#0008;border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;transition:width .25s}.bar b{position:absolute;left:10px;top:0;font-size:12px;line-height:18px}
+#hp i{background:linear-gradient(90deg,#66bb6a,#c6ff00)}#sh i{background:linear-gradient(90deg,#29b6f6,#80deea)}
+#am{right:24px;bottom:22px;font-size:26px;text-shadow:0 2px 6px #000}
+#slots{left:50%;bottom:20px;transform:translateX(-50%);display:flex;gap:8px}
+.sl{position:relative;width:84px;height:62px;border:2px solid #fff3;border-radius:10px;background:#0009;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;transition:transform .15s,box-shadow .15s}
+.sl u{position:absolute;left:6px;top:2px;text-decoration:none;opacity:.6;font-size:11px}
+.sl.on{transform:translateY(-8px) scale(1.1);box-shadow:0 0 18px #4fc3f7;background:#1b3a5acc}
+.pop{animation:pop .4s}@keyframes pop{40%{transform:scale(1.4)}}
+#feed{right:20px;top:20px;text-align:right}
+#feed div{background:#0008;padding:5px 10px;margin-bottom:4px;border-radius:6px;animation:fi .25s,fo .5s 4s forwards}@keyframes fo{to{opacity:0}}
+#sb{left:20px;top:20px;min-width:150px;text-shadow:0 1px 4px #000}#sb div{display:flex;justify-content:space-between;gap:14px}#sb .me{color:#ffd54f}
+#vig{inset:0;opacity:0;background:radial-gradient(ellipse at center,transparent 45%,var(--vc,red) 150%)}
+#scope{inset:0;opacity:0;background:radial-gradient(circle,transparent 22%,#000 23%)}
+#pr{left:50%;top:62%;transform:translateX(-50%);font-size:20px;background:#000a;padding:8px 18px;border-radius:20px;display:none}
+#dead{left:50%;top:36%;transform:translate(-50%,-50%);font-size:40px;text-shadow:0 0 20px red;display:none}
+#big{position:fixed;left:50%;top:30%;z-index:5;pointer-events:none;font-size:clamp(28px,6vw,56px);white-space:nowrap;text-shadow:0 0 30px #ffd54f;transform:translate(-50%,-50%) scale(0);transition:transform .6s cubic-bezier(.2,1.6,.4,1)}
+#big.show{transform:translate(-50%,-50%) scale(1)}
+#lock{display:none;position:fixed;inset:0;z-index:4;background:#000a;flex-direction:column;align-items:center;justify-content:center;gap:12px;font-size:30px;cursor:pointer}
+#lock small{font-size:14px;opacity:.8}
+.dn{position:fixed;z-index:9;font-weight:900;pointer-events:none;text-shadow:0 2px 4px #000;animation:rise .8s ease-out forwards}
+@keyframes rise{to{transform:translateY(-60px) scale(1.3);opacity:0}}
+</style></head><body>
+<div id="menu" class="scr"><h1>GUN ARENA</h1>
+<input id="nm" placeholder="ニックネーム" maxlength="12">
+<button id="mk">ルームを作る</button>
+<div class="row"><input id="code" placeholder="CODE" maxlength="4"><button id="jn">コードで参加</button></div>
+<div id="err"></div></div>
+<div id="room" class="scr" style="display:none"><div>ROOM CODE（クリックでコピー）</div><div id="rc"></div><ul id="pl"></ul><button id="go">ゲーム開始</button><div id="wt">ホストの開始を待っています…</div></div>
+<div id="hud">
+<div id="cross"></div><div id="hm">✕</div><div id="sb"></div><div id="feed"></div>
+<div id="bars"><div class="bar" id="hp"><i></i><b>100</b></div><div class="bar" id="sh"><i></i><b>25</b></div></div>
+<div id="am"></div><div id="slots"></div><div id="pr">E　宝箱を開ける</div><div id="dead"></div><div id="vig"></div><div id="scope"></div>
+</div>
+<div id="big"></div>
+<div id="lock">クリックで開始<small>WASD 移動 / 左クリック 射撃 / 右クリック エイム / R リロード / E 宝箱 / 1-5 スロット / Shift ダッシュ / Space ジャンプ</small></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="game.js"></script>
+</body></html>
